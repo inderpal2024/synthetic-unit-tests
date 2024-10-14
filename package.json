@@ -1,0 +1,20 @@
+{
+  "name": "synthetic-unit-tests",
+  "version": "1.0.0",
+  "description": "synthetic-unit-tests",
+  "main": "index.js",
+  "scripts": {
+    "start": "servor tasks --reload",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "servor": "^4.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

@@ -1,0 +1,190 @@
+For the following html app, generate the jest and jsdom test cases as per the requirements and assumptions given at the end.
+Load html from index.html file and use DOMParser to generate document model before each test.
+```html
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Food Preference Ranking</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    h1 {
+      text-align: center;
+    }
+    .choice-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .choice {
+      padding: 10px 20px;
+      margin: 0 10px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .choice:hover {
+      background-color: #eee;
+    }
+    #results {
+      margin-top: 20px;
+      text-align: center; /* Center the results */
+    }
+    ol {
+      width: max-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    li {
+      text-align: left;
+    }
+    #comparison-counter {
+      text-align: center;
+      margin: 10px auto;
+      max-width: max-content;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Food Preference Ranking</h1>
+
+<div id="choice-container" class="choice-container"></div>
+<div id="comparison-counter">
+  Comparisons Remaining: <span id="comparisons-remaining"></span>
+</div>
+<div id="results"></div>
+
+<script>
+  const foods = [
+    "Clam Chowder", "California Burrito", "Mission-style Burrito", "Fish Tacos", "Carne Asada Fries", "Date Shake",
+    "Avocado Toast", "Sourdough Bread", "Tri-tip Sandwich", "cioppino" // Example local foods (adjust as needed)
+  ];
+
+  let eloScores = {};
+  foods.forEach(food => eloScores[food] = 1000); // Initialize ELO scores
+
+  function updateElo(winner, loser) {
+    const k = 32; // ELO K-factor
+    const expectedScoreWinner = 1 / (1 + Math.pow(10, (eloScores[loser] - eloScores[winner]) / 400));
+    const expectedScoreLoser = 1 / (1 + Math.pow(10, (eloScores[winner] - eloScores[loser]) / 400));
+
+    eloScores[winner] += k * (1 - expectedScoreWinner);
+    eloScores[loser] += k * (0 - expectedScoreLoser);
+  }
+
+  let comparisonsRemaining = 15;
+  const comparisonCount = document.getElementById('comparisons-remaining');
+
+  function displayChoices(food1, food2) {
+    const container = document.getElementById("choice-container");
+    container.innerHTML = ""; // Clear previous choices
+
+    const choice1 = document.createElement("div");
+    choice1.className = "choice";
+    choice1.textContent = food1;
+    choice1.onclick = () => handleChoice(food1, food2);
+    container.appendChild(choice1);
+
+    const choice2 = document.createElement("div");
+    choice2.className = "choice";
+    choice2.textContent = food2;
+    choice2.onclick = () => handleChoice(food2, food1);
+    container.appendChild(choice2);
+
+    comparisonCount.textContent = comparisonsRemaining;
+  }
+
+  function displayResults() {
+    const sortedFoods = Object.entries(eloScores).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "<h2>Your Food Ranking:</h2>";
+    const resultList = document.createElement("ol");
+    sortedFoods.forEach(([food, score]) => {
+      const listItem = document.createElement("li"),
+        span1 = document.createElement('span'),
+        span2 = document.createElement('span');
+
+      span1.textContent = food;
+      span2.textContent = Math.round(score);
+      span1.style.marginRight = '10px';
+
+      listItem.appendChild(span1);
+      listItem.appendChild(span2);
+      resultList.appendChild(listItem);
+    });
+    resultsDiv.appendChild(resultList);
+  }
+
+  function handleChoice(winner, loser) {
+    updateElo(winner, loser);
+    comparisonsRemaining--;
+
+    if (comparisonsRemaining > 0) { // Adjust the number of comparisons as needed
+      const {food1, food2} = pick2RandomFoods();
+
+      displayChoices(food1, food2);
+    } else {
+      const container = document.getElementById("choice-container");
+      container.innerHTML = ""; // Clear existing choices
+
+      document.getElementById('comparison-counter').style.display = 'none';
+
+      displayResults();
+    }
+  }
+
+  function pick2RandomFoods() {
+    const food1 = foods[Math.floor(Math.random() * foods.length)];
+    let food2;
+
+    do {
+      food2 = foods[Math.floor(Math.random() * foods.length)];
+    } while (food1 === food2);
+
+    return { food1, food2 };
+  }
+
+  const {food1, food2} = pick2RandomFoods();
+  displayChoices(food1, food2);
+
+</script>
+
+</body>
+</html>
+
+
+```
+
+Requirement 1: Users are presented a pair of foods for comparison in a div with id "choice-container".
+Assumption 1: There is a container with id "choice-container" that is used to present the user with 2 choices.
+
+Requirement 2: Clicking one of the foods increases its ELO rating and decreases the same for other foods.
+Assumption 2: All foods have an ELO rating stored in the global eloScores object.
+
+Requirement 3: UI always shows the number of comparisons left before the result is to be displayed.
+Assumption 3: There are a fixed number of comparisons and until they are exhausted, remaining number of comparisons are shown in a div with id comparison-counter.
+
+Requirement 4: Clicking one of the 2 choices decreases the value of remaining comparisons by 1.
+Assumption 4: User is able to click one of the 2 elements with class "choice" inside the element with class "choice-container".
+
+Requirement 5: When the number of comparisons left reaches 0, the Result of comparisons is shown.
+Assumption 5: The app stores the ELO of each food and updates it on every click.
+
+Requirement 6: When the comparisons remaining reaches 0, the app shows the comparison results in descending order in an ordered list.
+Assumption 6: Results are shown in an ordered list.
+
+Requirement 7: The app uses only HTML, CSS and JavaScript.
+Assumption 7: No other technology or programing language is used.
+
+Requirement 8: When the result are shown, the elements with ids choice-container and comparison-counter are hidden or their contents are cleared.
+Assumption 8: There is an element with id choice-container and also, there is another element with id comparison-counter.
+
+Requirement 9: When the app first loads, all the values in eloScores are same.
+Assumption 9: There is an object named eloScores which is a map of ELO scores of different elements.
+
+Requirement 10: Foods picked using pick2RandomFoods function are random and different.
+Assumption 10: There is a function named pick2RandomFoods which returns 2 randomly selected foods.

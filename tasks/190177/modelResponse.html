@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Food Preference Ranking</title>
+<style>
+body {
+  font-family: sans-serif;
+}
+.choice-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+.choice {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.choice:hover {
+  background-color: #eee;
+}
+#results {
+  margin-top: 20px;
+  text-align: center; /* Center the results */
+}
+</style>
+</head>
+<body>
+
+<h1>Food Preference Ranking</h1>
+
+<div id="choice-container" class="choice-container"></div>
+<div id="results"></div>
+
+<script>
+const foods = [
+    "Clam Chowder", "California Burrito", "Mission-style Burrito", "Fish Tacos", "Carne Asada Fries", "Date Shake",
+    "Avocado Toast", "Sourdough Bread", "Tri-tip Sandwich", "cioppino" // Example local foods (adjust as needed)
+  ];
+
+  let eloScores = {};
+  foods.forEach(food => eloScores[food] = 1000); // Initialize ELO scores
+
+  function chooseRandomFoods(numFoods) {
+    const shuffled = foods.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, numFoods);
+  }
+
+  function updateElo(winner, loser) {
+    const k = 32; // ELO K-factor
+    const expectedScoreWinner = 1 / (1 + Math.pow(10, (eloScores[loser] - eloScores[winner]) / 400));
+    const expectedScoreLoser = 1 / (1 + Math.pow(10, (eloScores[winner] - eloScores[loser]) / 400));
+
+    eloScores[winner] += k * (1 - expectedScoreWinner);
+    eloScores[loser] += k * (0 - expectedScoreLoser);
+  }
+
+
+  function displayChoices(food1, food2) {
+    const container = document.getElementById("choice-container");
+    container.innerHTML = ""; // Clear previous choices
+
+    const choice1 = document.createElement("div");
+    choice1.className = "choice";
+    choice1.textContent = food1;
+    choice1.onclick = () => handleChoice(food1, food2);
+    container.appendChild(choice1);
+
+    const choice2 = document.createElement("div");
+    choice2.className = "choice";
+    choice2.textContent = food2;
+    choice2.onclick = () => handleChoice(food2, food1);
+    container.appendChild(choice2);
+  }
+
+  function displayResults() {
+    const sortedFoods = Object.entries(eloScores).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "<h2>Your Food Ranking:</h2>";
+    const resultList = document.createElement("ol");
+    sortedFoods.forEach(([food, score]) => {
+      const listItem = document.createElement("li");
+      listItem.textContent = `${food}: ${Math.round(score)}`;
+      resultList.appendChild(listItem);
+    });
+    resultsDiv.appendChild(resultList);
+  }
+
+
+  let selectedFoods = chooseRandomFoods(10);
+  let currentComparison = 0;
+
+  function handleChoice(winner, loser) {
+    updateElo(winner, loser);
+    currentComparison++;
+
+    if (currentComparison < 15) { // Adjust the number of comparisons as needed
+      const food1 = selectedFoods[Math.floor(Math.random() * selectedFoods.length)];
+        let food2;
+         do {
+           food2 = selectedFoods[Math.floor(Math.random() * selectedFoods.length)];
+            } while (food1 === food2);
+      displayChoices(food1, food2);
+
+
+    } else {
+      displayResults();
+    }
+  }
+
+
+
+   const food1 = selectedFoods[Math.floor(Math.random() * selectedFoods.length)];
+    let food2;
+ do {
+       food2 = selectedFoods[Math.floor(Math.random() * selectedFoods.length)];
+     } while (food1 === food2);
+  displayChoices(food1, food2);
+
+
+</script>
+
+</body>
+</html>
