@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reaction Time Test</title>
+  <style>
+    #coloured-area {
+      min-width: 200px;
+      width: 80%;
+      height: 200px;
+      background-color: blue;
+      margin: 50px auto;
+      cursor: pointer;
+    }
+
+    #message {
+      text-align: center;
+      font-size: 20px;
+      margin: 10px auto;
+      border: 0;
+      width: max-content;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="coloured-area"></div>
+  <div id="message"></div>
+
+  <script>
+    var Messages = {
+      START_GAME: 'Click the coloured box start the game.',
+      GAME_STARTED_WAIT_FOR_COLOR_CHANGE: 'Click the coloured box as soon as its colour changes.',
+      GAME_STARTED_CLICK_NOW: 'Click now!',
+      CLICKED_EARLY: 'You clicked too early. Click the box to restart.',
+      RETRY: 'Click the box to try again.'
+    };
+
+    var state = {
+      message: Messages.START_GAME, // message serves as a flag for the type of current game state.
+      startTime: null,
+      result: null
+    };
+
+    var colouredArea = document.getElementById("coloured-area"),
+      message = document.getElementById("message");
+
+    function updateColorAndText() {
+      // color decision based on state is written in a single place.
+
+      let color = 'blue';
+      switch (state.message) {
+        case Messages.START_GAME:
+          color = 'blue';
+          break;
+        case Messages.GAME_STARTED_WAIT_FOR_COLOR_CHANGE:
+          color = 'red';
+          break;
+        case Messages.GAME_STARTED_CLICK_NOW:
+          color = 'green';
+          break;
+        case Messages.CLICKED_EARLY:
+          color = 'blue';
+          break;
+        case Messages.RETRY:
+          color = 'blue';
+          break;
+        default:
+          color = 'blue';
+          break;
+      }
+
+      colouredArea.style.backgroundColor = color;
+      message.textContent = state.message;
+
+      if (state.result) {
+        message.textContent = `Your reaction time = ${state.result} ms. ` + message.textContent;
+      }
+    }
+
+    function getRandomDelay() {
+      return Math.random() * 3000 + 1000; // Delay between 1 and 4 seconds
+    }
+
+    var timeoutRef = null;
+    function startGame() {
+      state.message = Messages.GAME_STARTED_WAIT_FOR_COLOR_CHANGE;
+      state.startTime = null;
+      state.result = null;
+      updateColorAndText();
+
+      timeoutRef = setTimeout(() => {
+        state.startTime = new Date().getTime();
+        state.message = Messages.GAME_STARTED_CLICK_NOW;
+        updateColorAndText();
+
+        timeoutRef = null;
+      }, getRandomDelay());
+    }
+
+    colouredArea.onmousedown = function() {
+      if (state.message === Messages.GAME_STARTED_CLICK_NOW) {
+        state.message = Messages.RETRY;
+        state.result = new Date().getTime() - state.startTime;
+      } else if (state.message === Messages.GAME_STARTED_WAIT_FOR_COLOR_CHANGE) {
+        state.message = Messages.CLICKED_EARLY;
+        state.startTime = null;
+        state.result = null;
+        clearTimeout(timeoutRef);
+        timeoutRef = null;
+      } else
+      // if (state.message === Messages.RETRY
+      //   || state.message === Messages.START_GAME
+      //   || state.message === Messages.CLICKED_EARLY)
+      {
+        state.message = Messages.GAME_STARTED_WAIT_FOR_COLOR_CHANGE;
+        state.startTime = null;
+        state.result = null;
+        startGame();
+      }
+      updateColorAndText();
+    }
+
+    updateColorAndText();
+  </script>
+
+</body>
+</html>
